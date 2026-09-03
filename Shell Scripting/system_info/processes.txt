@@ -1,0 +1,5 @@
+  PID TTY           TIME CMD
+16839 ttys017    0:00.05 /bin/zsh -il
+17129 ttys021    0:00.08 /bin/zsh -il
+18080 ttys023    0:00.07 /bin/zsh -il
+18938 ttys023    0:00.01 /bin/bash ./system_info.sh
