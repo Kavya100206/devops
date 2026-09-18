@@ -3,7 +3,7 @@
 ## Student Details
 
 * **Name:** Kavya Raghavendran
-* **Enrollment Number:** 2024bcs10324
+* **Enrollment Number:** 24bcs10324
 
 ---
 
