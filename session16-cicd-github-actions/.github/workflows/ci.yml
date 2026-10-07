@@ -1,0 +1,96 @@
+name: Python CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # ==========================================
+  # CI STAGE: Test Application
+  # ==========================================
+  test:
+    name: Run Unit Tests (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Display Python version
+        run: python --version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run test suite
+        run: |
+          pytest -v
+
+  # ==========================================
+  # CI STAGE: Package Application & Artifacts
+  # ==========================================
+  build:
+    name: Build & Package Artifact (CI)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build application
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Verify build output
+        run: |
+          ls -la build
+          cat build/build-info.txt
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculator-build
+          path: build/
+
+  # ==========================================
+  # CD STAGE: Container Build & Secret Verification
+  # ==========================================
+  deploy-preparation:
+    name: Container Build & CD Readiness
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Verify Repository Secrets
+        env:
+          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
+        run: |
+          if [ -n "$DEMO_SECRET" ]; then
+            echo "DEMO_SECRET is configured and securely injected."
+          else
+            echo "DEMO_SECRET is not configured (optional classroom secret)."
+          fi
+
+      - name: Build Docker Container Image (CD Packaging)
+        run: |
+          docker build -t calculator-app:${{ github.sha }} .
+          docker images | grep calculator-app

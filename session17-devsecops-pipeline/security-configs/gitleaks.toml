@@ -1,0 +1,15 @@
+title = "DevSecOps Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowed non-sensitive patterns and test files"
+paths = [
+  '''tests/.*''',
+  '''screenshots/.*'''
+]
+regexes = [
+  '''example-token-12345''',
+  '''demo-secret'''
+]

@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: "observability-demo-app"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["localhost:5000"]
+        labels:
+          app: "observability-demo"
+          environment: "production"
+
+  - job_name: "kubernetes-pods"
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+
+# Prometheus Alert Rules
+alert_rules:
+  groups:
+    - name: application_health_alerts
+      rules:
+        - alert: ServiceDown
+          expr: up{job="observability-demo-app"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Service {{ $labels.instance }} is down"
+            description: "Target has been unreachable for more than 1 minute."
+
+        - alert: HighCPUUtilization
+          expr: app_cpu_utilization_percent > 80
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU usage detected on {{ $labels.instance }}"
+            description: "Process CPU utilization is above 80% (current: {{ $value }}%)."
+
+        - alert: HighMemoryUsage
+          expr: app_memory_utilization_bytes > 209715200 # 200 MB
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High Memory usage detected"
+            description: "Process RSS memory exceeds 200 MB threshold."

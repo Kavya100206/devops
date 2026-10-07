@@ -1,0 +1,8 @@
+# Trivy Security Scanner Configuration
+severity:
+  - HIGH
+  - CRITICAL
+ignore-unfixed: true
+format: table
+exit-code: 0  # Warn/report or set to 1 for breaking security gate
+timeout: 5m

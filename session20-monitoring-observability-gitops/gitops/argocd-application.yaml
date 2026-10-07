@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notes-app-gitops
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Kavya100206/devops.git'
+    targetRevision: HEAD
+    path: 'session20-monitoring-observability-gitops/gitops/app-manifests'
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true      # Automatically delete resources removed from Git
+      selfHeal: true   # Automatically revert unauthorized manual cluster edits (Drift reconciliation)
+    syncOptions:
+      - CreateNamespace=true

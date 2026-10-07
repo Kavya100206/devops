@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-demo-deployment
+  labels:
+    app: observability-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: observability-demo
+  template:
+    metadata:
+      labels:
+        app: observability-demo
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: observability-app
+          image: python:3.12-slim
+          command: ["python", "-c"]
+          args:
+            - |
+              import urllib.request, time
+              print("App running with metrics enabled...")
+              while True: time.sleep(60)
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
